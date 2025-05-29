@@ -4,13 +4,15 @@ from tkinter import filedialog
 import cv2
 import os
 import numpy as np
+from PIL import Image, ImageTk
 
 class GUI:
     path = ""
     def __init__(self, root):
         self.root = root
-        self.image = None
-        self.root.title("Image App")
+        self.image1 = None
+        self.image2 = None
+        self.root.title("Find the Differences Game")
         self.root.geometry("1300x700")
         
         self.style = tb.Style()
@@ -49,18 +51,18 @@ class GUI:
             width=20,
             height=8,
             font=("Helvetica", 15),
-            command=self.resultPage
+            command=self.gamePage
         )
         self.selectBtn1.place(x=130, y=200)
 
 
         self.selectBtn2=tk.Button(
             self.tab1, 
-            text="Choose an image from disk",
+            text="Choose 2 images from disk",
             width=20,
             height= 8,
             font=("Helvetica", 15),
-            command=self.openFolder
+            command=self.twoImagesPage
         )
         self.selectBtn2.place(x=800, y=200)
 
@@ -87,7 +89,6 @@ class GUI:
         self.iconLabel2 = tk.Label(root, image=self.icon2)
         self.iconLabel2.place(x=1000, y=550)
 
-
         self.startBtn=tk.Button(
             root, 
             text="Start", 
@@ -108,10 +109,74 @@ class GUI:
         )
         self.exitBtn.place(x=550, y=400)
 
+    def twoImagesPage(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.img1Btn = tk.Button(
+            root, 
+            text="First Image", 
+            width=12,
+            height=1,
+            font=("MV Boli", 14),
+            command=lambda: self.openFolder(1)
+        )
+        self.img1Btn.place(x=170, y=150)
+
+        self.img2Btn = tk.Button(
+            root, 
+            text="Second Image", 
+            width=12,
+            height=1,
+            font=("MV Boli", 14),
+            command=lambda: self.openFolder(2)
+        )
+        self.img2Btn.place(x=950, y=150)
+
+        self.startGameBtn = tk.Button(
+            root, 
+            text="Start Game", 
+            width=14,
+            height=1,
+            font=("MV Boli", 15),
+            command=self.gamePage
+        )
+        self.startGameBtn.place(x=520, y=600)
+
+        self.img1Display = tk.Label(root)
+        self.img1Display.place(x=150, y=200)
+
+        self.img2Display = tk.Label(root)
+        self.img2Display.place(x=930, y=200)
+
+    def openFolder(self, imageNum):
+        imageCurrPath = filedialog.askopenfilename(
+            title="Select an Image:",
+            filetypes=[("Image Files", "*.png *.jpg *.jpeg *.bmp *.gif")]
+        )
+        
+        if imageCurrPath:
+            if imageNum == 1:
+                self.image1 = imageCurrPath
+                displayLabel = self.img1Display
+            else:
+                self.image2 = imageCurrPath
+                displayLabel = self.img2Display
+
+            img = Image.open(imageCurrPath)
+            img.thumbnail((200, 200))
+            photo = ImageTk.PhotoImage(img)
+            
+            displayLabel.config(image=photo)
+            displayLabel.image = photo
+                
     def resultPage(self, state = False, correctTimes =0, wrongTimes =0):
 
         if hasattr(self, 'notebook'):
             self.notebook.destroy()
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
         msg = ""
         if state:
@@ -121,7 +186,6 @@ class GUI:
 
         self.gameoverLabel =tk.Label(root, text=msg, font=("MV Boli", 45))
         self.gameoverLabel.place(x=410, y=100)
-
 
         self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {wrongTimes}", font=("MV Boli", 23))
         self.scoreLabel.place(x=470, y=300)
@@ -138,21 +202,33 @@ class GUI:
 
         self.backBtn.place(x=520, y = 420)
 
-
-
-    def openFolder(self):
-        self.image = filedialog.askopenfilename(
-            title="Select an Image:",
-            filetypes=[("Image Files", "*.png *.jpg *.jpeg *.bmp *.gif")]
-        )
+    def gamePage(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
         
-        if self.image:
-            self.textArea.delete("1.0", tk.END)
-            self.textArea.insert(tk.END, f"Selected Image Path:\n{self.image}\n\n")
-            self.textArea.insert(tk.END, f"Image successfully selected (:")
-            self.pathTemp.set(self.image)
-    
 
-root = tb.Window(themename="superhero")
+        self.confirmBtn=tk.Button(
+            root, 
+            text="Confirm", 
+            width=14,
+            height=1,
+            font=("MV Boli", 17),
+            command= self.HomePage
+        )
+
+        self.confirmBtn.place(x=550, y=600)
+
+        self.testBtn=tk.Button(
+            root, 
+            text="test result page", 
+            width=15,
+            height=1,
+            font=("MV Boli", 10),
+            command= self.resultPage
+        )
+        self.testBtn.place(x=50, y = 420)
+
+# solar, vapor (▀̿Ĺ̯▀̿ ̿)
+root = tb.Window(themename="vapor") 
 app = GUI(root)
 root.mainloop()
