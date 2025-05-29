@@ -20,7 +20,9 @@ class GUI:
         
     def createPage(self):
 
-        self.__init__(root)
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
         self.notebook = tb.Notebook(self.root, bootstyle="dark")
         self.notebook.pack(pady=20, fill=tk.BOTH, expand=True)
         
@@ -30,8 +32,8 @@ class GUI:
         self.tab1.pack(fill=tk.BOTH, expand=True)
         self.tab2.pack(fill=tk.BOTH, expand=True)
         
-        self.notebook.add(self.tab1, text="Image Tab")
-        self.notebook.add(self.tab2, text="converting Tab")
+        self.notebook.add(self.tab1, text="Image Mode")
+        self.notebook.add(self.tab2, text="Settings")
         
         self.imageTab()
     
@@ -47,7 +49,7 @@ class GUI:
             width=20,
             height=8,
             font=("Helvetica", 15),
-            command=self.openFolder
+            command=self.resultPage
         )
         self.selectBtn1.place(x=130, y=200)
 
@@ -67,6 +69,10 @@ class GUI:
         self.label1.pack(pady=10)
 
     def HomePage(self):
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
         self.greeting =tk.Label(root, text="Welcome to our game", font=("MV Boli", 22))
         self.greeting.place(x=450, y=50)
 
@@ -98,9 +104,40 @@ class GUI:
             width=14,
             height=1,
             font=("MV Boli", 17),
-            command= None
+            command= self.root.destroy
         )
         self.exitBtn.place(x=550, y=400)
+
+    def resultPage(self, state = False, correctTimes =0, wrongTimes =0):
+
+        if hasattr(self, 'notebook'):
+            self.notebook.destroy()
+
+        msg = ""
+        if state:
+            msg = "Great!, You did it!! :)"
+        else:
+            msg = "Game Over!!"
+
+        self.gameoverLabel =tk.Label(root, text=msg, font=("MV Boli", 45))
+        self.gameoverLabel.place(x=410, y=100)
+
+
+        self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {wrongTimes}", font=("MV Boli", 23))
+        self.scoreLabel.place(x=470, y=300)
+
+
+        self.backBtn=tk.Button(
+            root, 
+            text="Back", 
+            width=14,
+            height=1,
+            font=("MV Boli", 17),
+            command= self.HomePage
+        )
+
+        self.backBtn.place(x=520, y = 420)
+
 
 
     def openFolder(self):
