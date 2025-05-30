@@ -202,33 +202,102 @@ class GUI:
 
         self.backBtn.place(x=520, y = 420)
 
+    def check_result(self):
+        correct_count = 0
+        matched = [False] * len(self.correct_answers)
+
+        for ux, uy in self.user_answers:
+            for idx, ((x1, y1), (x2, y2)) in enumerate(self.correct_answers):
+                if not matched[idx] and x1 <= ux <= x2 and y1 <= uy <= y2:
+                    correct_count += 1
+                    matched[idx] = True
+                    break
+
+        total = len(self.correct_answers)
+        self.resultPage(state=(correct_count == total), correctTimes=correct_count, wrongTimes=total)
+
+    def canvas2_click(self, event):
+        x, y = event.x, event.y
+        shape = self.selected_shape.get()
+        size = 30 # "temp"
+
+        if shape == "circle":
+            self.canvas2.create_oval(
+                x - size, y - size, x + size, y + size,
+                outline="red", width=2
+            )
+        elif shape == "rectangle":
+            self.canvas2.create_rectangle(
+                x - size, y - size, x + size, y + size,
+                outline="blue", width=2
+            )
+
+        self.user_answers.append((x, y))
+
+
+
     def gamePage(self):
         for widget in self.root.winfo_children():
             widget.destroy()
-        
 
-        self.confirmBtn=tk.Button(
-            root, 
-            text="Confirm", 
+        self.correct_answers = [ #########just for testing :\ #########
+            [(100, 100), (150, 150)],
+            [(300, 250), (340, 290)],
+        ]
+
+        self.root.geometry("1300x700")
+
+        self.confirmBtn = tk.Button(
+            self.root,
+            text="Confirm",
             width=14,
             height=1,
             font=("MV Boli", 17),
-            command= self.HomePage
+            command=self.HomePage
         )
-
         self.confirmBtn.place(x=550, y=600)
 
-        self.testBtn=tk.Button(
-            root, 
-            text="test result page", 
+        self.testBtn = tk.Button(
+            self.root,
+            text="test result page",
             width=15,
             height=1,
             font=("MV Boli", 10),
-            command= self.resultPage
+            command=self.check_result
         )
-        self.testBtn.place(x=50, y = 420)
+        self.testBtn.place(x=50, y=420)
+
+        self.selected_shape = tk.StringVar(value= "rectangle")
+        shape_label = tk.Label(self.root, text="Select shape:", font=("MV Boli", 12))
+        shape_label.place(x=850, y=550)
+
+        shape_menu = tk.OptionMenu(self.root, self.selected_shape, "rectangle", "circle")
+        shape_menu.config(font=("MV Boli", 12), width=10)
+        shape_menu.place(x=1000, y=550)
+
+
+        if self.image1 and self.image2:
+            img1 = Image.open(self.image1).resize((400, 400), Image.Resampling.LANCZOS)
+            img2 = Image.open(self.image2).resize((400, 400), Image.Resampling.LANCZOS)
+
+            self.tk_img1 = ImageTk.PhotoImage(img1)
+            self.tk_img2 = ImageTk.PhotoImage(img2)
+
+            self.canvas1 = tk.Canvas(self.root, width=400, height=400)
+            self.canvas1.place(x=250, y=100)
+            self.canvas1.create_image(0, 0, anchor="nw", image=self.tk_img1)
+
+            self.canvas2 = tk.Canvas(self.root, width=400, height=400)
+            self.canvas2.place(x=700, y=100)
+            self.canvas2.create_image(0, 0, anchor="nw", image=self.tk_img2)
+
+            self.user_answers=[]
+            self.canvas2.bind("<Button-1>",self.canvas2_click)
+        else:
+            tk.messagebox.showerror("Error", "Please select two images first.")
+
 
 # solar, vapor (▀̿Ĺ̯▀̿ ̿)
-root = tb.Window(themename="vapor") 
+root = tb.Window(themename="vapor")
 app = GUI(root)
 root.mainloop()
