@@ -5,6 +5,7 @@ import cv2
 import os
 import numpy as np
 from PIL import Image, ImageTk
+from Game import Game
 
 class GUI:
     path = ""
@@ -14,6 +15,7 @@ class GUI:
         self.image2 = None
         self.root.title("Find the Differences Game")
         self.root.geometry("1300x700")
+        self.game = Game()
         
         self.style = tb.Style()
         self.style.configure('TNotebook.Tab', font=('Helvetica', '12'), padding=[20, 10])
@@ -45,16 +47,23 @@ class GUI:
         iconLabel = tk.Label(self.tab1, image=self.icon1)
         iconLabel.pack(pady=10)
 
+        def selectBtnAction():
+            self.image1, self.image2 = self.game.getImagePairs()
+            self.gamePage()
+
         self.selectBtn1=tk.Button(
             self.tab1, 
             text="generate a random Image", 
             width=20,
             height=8,
             font=("Helvetica", 15),
-            command=self.gamePage
+            command=selectBtnAction
         )
         self.selectBtn1.place(x=130, y=200)
 
+        def selectBtnAction():
+            self.image1, self.image2 = self.game.getImagePairs()
+            self.gamePage()
 
         self.selectBtn2=tk.Button(
             self.tab1, 
@@ -65,6 +74,8 @@ class GUI:
             command=self.twoImagesPage
         )
         self.selectBtn2.place(x=800, y=200)
+
+        
 
         
         self.label1 =tk.Label(self.tab1, text="Image Selection Page", font=("Helvetica", 18))
