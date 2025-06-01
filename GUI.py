@@ -20,7 +20,7 @@ class GUI:
         self.style.configure('TNotebook.Tab', font=('Helvetica', '12'), padding=[20, 10])
         self.pathTemp = tk.StringVar()
         self.HomePage()
-        self.user_answers = []
+        self.userAnswers = []
         self.tempMovements = []
         self.annotations = []
 
@@ -206,23 +206,23 @@ class GUI:
 
         self.backBtn.place(x=520, y = 420)
 
-    def check_result(self):
+    def checkResult(self):
         correct_count = 0
-        matched = [False] * len(self.correct_answers)
+        matched = [False] * len(self.correctAnswers)
 
-        for ux, uy in self.user_answers:
-            for idx, ((x1, y1), (x2, y2)) in enumerate(self.correct_answers):
+        for ux, uy in self.userAnswers:
+            for idx, ((x1, y1), (x2, y2)) in enumerate(self.correctAnswers):
                 if not matched[idx] and x1 <= ux <= x2 and y1 <= uy <= y2:
                     correct_count += 1
                     matched[idx] = True
                     break
 
-        total = len(self.correct_answers)
+        total = len(self.correctAnswers)
         self.resultPage(state=(correct_count == total), correctTimes=correct_count, wrongTimes=total)
 
-    def canvas2_click(self, event):
+    def canvas2Click(self, event):
         x, y = event.x, event.y
-        shape = self.selected_shape.get()
+        shape = self.selectedShape.get()
         shapeId = None
         size = 30  # "temp"
         coords = (x - size, y - size, x + size, y + size)
@@ -240,11 +240,12 @@ class GUI:
 
         if shapeId:
             self.annotations.append((shape,coords,shapeId))
-            self.user_answers.append((x,y))
+            self.userAnswers.append((x, y))
             self.tempMovements.clear()
+
     def redo(self):
         if self.tempMovements:
-            shapeType, coords,shapeId= self.tempMovements.pop()
+            shapeType, coords, _ = self.tempMovements.pop()
             shapeId = None
             if shapeType == "circle":
                 shapeId = self.canvas2.create_oval(
@@ -260,7 +261,7 @@ class GUI:
                 self.annotations.append((shapeType,coords,shapeId))
                 xCenter = (coords[0] + coords[2])/2
                 yCenter = (coords[1] + coords[3])/2
-                self.user_answers.append((xCenter,yCenter))
+                self.userAnswers.append((xCenter, yCenter))
 
     def undo(self):
         if self.annotations:
@@ -268,14 +269,14 @@ class GUI:
             shapeStyle,coords,shapeId = shape
             self.canvas2.delete(shapeId)
             self.tempMovements.append(shape)
-            if self.user_answers:
-                self.user_answers.pop()
+            if self.userAnswers:
+                self.userAnswers.pop()
 
     def gamePage(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        self.correct_answers = [ #########just for testing :\ #########
+        self.correctAnswers = [ #########just for testing :\ #########
             [(100, 100), (150, 150)],
             [(300, 250), (340, 290)],
         ]
@@ -298,17 +299,17 @@ class GUI:
             width=15,
             height=1,
             font=("MV Boli", 10),
-            command=self.check_result
+            command=self.checkResult
         )
         self.testBtn.place(x=50, y=420)
 
-        self.selected_shape = tk.StringVar(value= "rectangle")
-        shape_label = tk.Label(self.root, text="Select shape:", font=("MV Boli", 12))
-        shape_label.place(x=850, y=550)
+        self.selectedShape = tk.StringVar(value="rectangle")
+        shapeLabel = tk.Label(self.root, text="Select shape:", font=("MV Boli", 12))
+        shapeLabel.place(x=850, y=550)
 
-        shape_menu = tk.OptionMenu(self.root, self.selected_shape, "rectangle", "circle")
-        shape_menu.config(font=("MV Boli", 12), width=10)
-        shape_menu.place(x=1000, y=550)
+        shapeMenu = tk.OptionMenu(self.root, self.selectedShape, "rectangle", "circle")
+        shapeMenu.config(font=("MV Boli", 12), width=10)
+        shapeMenu.place(x=1000, y=550)
 
         self.undoBtn = tk.Button(
             self.root,
@@ -332,19 +333,19 @@ class GUI:
             img1 = Image.open(self.image1).resize((400, 400), Image.Resampling.LANCZOS)
             img2 = Image.open(self.image2).resize((400, 400), Image.Resampling.LANCZOS)
 
-            self.tk_img1 = ImageTk.PhotoImage(img1)
-            self.tk_img2 = ImageTk.PhotoImage(img2)
+            self.tkImg1 = ImageTk.PhotoImage(img1)
+            self.tkImg2 = ImageTk.PhotoImage(img2)
 
             self.canvas1 = tk.Canvas(self.root, width=400, height=400)
             self.canvas1.place(x=250, y=100)
-            self.canvas1.create_image(0, 0, anchor="nw", image=self.tk_img1)
+            self.canvas1.create_image(0, 0, anchor="nw", image=self.tkImg1)
 
             self.canvas2 = tk.Canvas(self.root, width=400, height=400)
             self.canvas2.place(x=700, y=100)
-            self.canvas2.create_image(0, 0, anchor="nw", image=self.tk_img2)
+            self.canvas2.create_image(0, 0, anchor="nw", image=self.tkImg2)
 
 
-            self.canvas2.bind("<Button-1>",self.canvas2_click)
+            self.canvas2.bind("<Button-1>", self.canvas2Click)
         else:
             tk.messagebox.showerror("Error", "Please select two images first.")
 
