@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 
 class GUI:
     path = ""
+
     def __init__(self, root):
         self.root = root
         self.image1 = None
@@ -19,7 +20,10 @@ class GUI:
         self.style.configure('TNotebook.Tab', font=('Helvetica', '12'), padding=[20, 10])
         self.pathTemp = tk.StringVar()
         self.HomePage()
-        
+        self.user_answers = []
+        self.tempMovements = []
+        self.annotations = []
+
     def createPage(self):
 
         for widget in self.root.winfo_children():
@@ -219,22 +223,53 @@ class GUI:
     def canvas2_click(self, event):
         x, y = event.x, event.y
         shape = self.selected_shape.get()
-        size = 30 # "temp"
+        shapeId = None
+        size = 30  # "temp"
+        coords = (x - size, y - size, x + size, y + size)
 
         if shape == "circle":
-            self.canvas2.create_oval(
-                x - size, y - size, x + size, y + size,
+            shapeId = self.canvas2.create_oval(
+                coords,
                 outline="red", width=2
             )
         elif shape == "rectangle":
-            self.canvas2.create_rectangle(
-                x - size, y - size, x + size, y + size,
+            shapeId = self.canvas2.create_rectangle(
+                coords,
                 outline="blue", width=2
             )
 
-        self.user_answers.append((x, y))
+        if shapeId:
+            self.annotations.append((shape,coords,shapeId))
+            self.user_answers.append((x,y))
+            self.tempMovements.clear()
+    def redo(self):
+        if self.tempMovements:
+            shapeType, coords,shapeId= self.tempMovements.pop()
+            shapeId = None
+            if shapeType == "circle":
+                shapeId = self.canvas2.create_oval(
+                    coords,
+                    outline="red",width=2
+                )
+            elif shapeType == "rectangle":
+                shapeId = self.canvas2.create_rectangle(
+                    coords,
+                    outline="blue",width=2
+                )
+            if shapeId:
+                self.annotations.append((shapeType,coords,shapeId))
+                xCenter = (coords[0] + coords[2])/2
+                yCenter = (coords[1] + coords[3])/2
+                self.user_answers.append((xCenter,yCenter))
 
-
+    def undo(self):
+        if self.annotations:
+            shape = self.annotations.pop()
+            shapeStyle,coords,shapeId = shape
+            self.canvas2.delete(shapeId)
+            self.tempMovements.append(shape)
+            if self.user_answers:
+                self.user_answers.pop()
 
     def gamePage(self):
         for widget in self.root.winfo_children():
@@ -275,7 +310,24 @@ class GUI:
         shape_menu.config(font=("MV Boli", 12), width=10)
         shape_menu.place(x=1000, y=550)
 
-
+        self.undoBtn = tk.Button(
+            self.root,
+            text="Undo",
+            width=14,
+            height=1,
+            font=("MV Boli", 10),
+            command=self.undo
+        )
+        self.undoBtn.place(x=50, y=600)
+        self.redoBtn = tk.Button(
+            self.root,
+            text="Redo",
+            width=14,
+            height=1,
+            font=("MV Boli", 10),
+            command=self.redo
+        )
+        self.redoBtn.place(x=50, y=650)
         if self.image1 and self.image2:
             img1 = Image.open(self.image1).resize((400, 400), Image.Resampling.LANCZOS)
             img2 = Image.open(self.image2).resize((400, 400), Image.Resampling.LANCZOS)
@@ -291,7 +343,7 @@ class GUI:
             self.canvas2.place(x=700, y=100)
             self.canvas2.create_image(0, 0, anchor="nw", image=self.tk_img2)
 
-            self.user_answers=[]
+
             self.canvas2.bind("<Button-1>",self.canvas2_click)
         else:
             tk.messagebox.showerror("Error", "Please select two images first.")
