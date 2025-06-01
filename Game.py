@@ -13,10 +13,27 @@ class Game:
                 self.history.add(index)
                 return (f"Images/img{index}-1.png", f"Images/img{index}-2.png")
             
-    def getRanges(imgName):
-        k1=[[(236,604),(38,651)],[(249,670),(476,546)],[(140,60),(271,132)],[(135,180),(499,243)],[(19,392),(83,494)]]
-        k2=[[(106,56),(231,243)],[(57,501),(229,576)],[(383,556),(477,669)]]
+    def getRanges(self, imgName):
+        imgsRange = []
+        imgsRange.append([])
+        imgsRange.append([])
+        imgsRange.append([[(155, 80), (180, 90)], [(230, 134), (255, 155)], [(10, 100), (60, 150)], [(350, 125), (385, 160)]])
+
+        return imgsRange[int(imgName.split('-')[0][-1])-1]
+    
+    def compareRanges(self, playerRanges, imgName):
+        score = 0
+        missing = []
+        originRanges = self.getRanges(imgName)
+        for player in playerRanges:
+            for origin in originRanges:
+                startO, endO = origin
+                startP, endP = player
+                if startO == startP and endO == endP:
+                    score += 1
+                else:
+                    missing.append(origin)
+        return (score, missing), 
+
         
-        # bruh dog shit ):
-        return None
         
