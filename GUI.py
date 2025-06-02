@@ -14,6 +14,8 @@ class GUI:
         self.root = root
         self.image1 = None
         self.image2 = None
+        self.annotations = []
+        self.playerShapes = []
         self.root.title("Find the Differences Game")
         self.root.geometry("1300x700")
         self.game = Game()
@@ -24,7 +26,6 @@ class GUI:
         self.HomePage()
         self.userAnswers = []
         self.tempMovements = []
-        self.annotations = []
 
     def createPage(self):
 
@@ -78,9 +79,6 @@ class GUI:
             command=self.twoImagesPage
         )
         self.selectBtn2.place(x=800, y=200)
-
-        
-
         
         self.label1 =tk.Label(self.tab1, text="Image Selection Page", font=("Helvetica", 18))
         self.label1.pack(pady=10)
@@ -89,6 +87,8 @@ class GUI:
 
         for widget in self.root.winfo_children():
             widget.destroy()
+
+        self.playerShapes.clear()
 
         self.greeting =tk.Label(root, text="Welcome to our game", font=("MV Boli", 22))
         self.greeting.place(x=450, y=50)
@@ -185,8 +185,7 @@ class GUI:
             displayLabel.config(image=photo)
             displayLabel.image = photo
                 
-    def resultPage(self, state = False, correctTimes =0, wrongTimes =0):
-
+    def resultPage(self, state = False, correctTimes =0, allTimes =0):
         if hasattr(self, 'notebook'):
             self.notebook.destroy()
 
@@ -194,15 +193,18 @@ class GUI:
             widget.destroy()
 
         msg = ""
+        space = None
         if state:
             msg = "Great!, You did it!! :)"
+            space = 250
         else:
             msg = "Game Over!!"
+            space = 410
 
         self.gameoverLabel =tk.Label(root, text=msg, font=("MV Boli", 45))
-        self.gameoverLabel.place(x=410, y=100)
+        self.gameoverLabel.place(x=space, y=100)
 
-        self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {wrongTimes}", font=("MV Boli", 23))
+        self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {allTimes}", font=("MV Boli", 23))
         self.scoreLabel.place(x=470, y=300)
 
 
@@ -217,61 +219,68 @@ class GUI:
 
         self.backBtn.place(x=520, y = 420)
 
-    def checkResult(self):
-        correct_count = 0
-        matched = [False] * len(self.correctAnswers)
-
-        for ux, uy in self.userAnswers:
-            for idx, ((x1, y1), (x2, y2)) in enumerate(self.correctAnswers):
-                if not matched[idx] and x1 <= ux <= x2 and y1 <= uy <= y2:
-                    correct_count += 1
-                    matched[idx] = True
-                    break
-
-        total = len(self.correctAnswers)
-        self.resultPage(state=(correct_count == total), correctTimes=correct_count, wrongTimes=total)
-
     def canvas2Click(self, event):
-        x, y = event.x, event.y
+        scaleX = self.originalSize[0] / self.displayedSize[0]
+        scaleY = self.originalSize[1] / self.displayedSize[1]
+        
+        originalX = event.x * scaleX
+        originalY = event.y * scaleY
+        
+        size = 30 * scaleX 
+        coords = (originalX - size, originalY - size, 
+                originalX + size, originalY + size)
+        
         shape = self.selectedShape.get()
         shapeId = None
-        size = 30  # "temp"
-        coords = (x - size, y - size, x + size, y + size)
 
+        displayCoords = (event.x - 30, event.y - 30, 
+                        event.x + 30, event.y + 30)
+        
         if shape == "circle":
             shapeId = self.canvas2.create_oval(
-                coords,
-                outline="red", width=2
+                displayCoords, outline="red", width=2
             )
         elif shape == "rectangle":
             shapeId = self.canvas2.create_rectangle(
-                coords,
-                outline="blue", width=2
+                displayCoords, outline="blue", width=2
             )
 
         if shapeId:
-            self.annotations.append((shape,coords,shapeId))
-            self.userAnswers.append((x, y))
+            self.annotations.append((shape, displayCoords, shapeId))
+            self.playerShapes.append([(coords[0], coords[1]), (coords[2], coords[3])])
+            self.userAnswers.append((originalX, originalY))
             self.tempMovements.clear()
 
     def redo(self):
         if self.tempMovements:
             shapeType, coords, _ = self.tempMovements.pop()
             shapeId = None
+            
+            scaleX = self.originalSize[0] / self.displayedSize[0]
+            scaleY = self.originalSize[1] / self.displayedSize[1]
+            
+            originalCoords = (
+                coords[0] * scaleX,
+                coords[1] * scaleY,
+                coords[2] * scaleX,
+                coords[3] * scaleY
+            )
+            
             if shapeType == "circle":
                 shapeId = self.canvas2.create_oval(
-                    coords,
-                    outline="red",width=2
+                    coords, outline="red", width=2
                 )
             elif shapeType == "rectangle":
                 shapeId = self.canvas2.create_rectangle(
-                    coords,
-                    outline="blue",width=2
+                    coords, outline="blue", width=2
                 )
+                
             if shapeId:
-                self.annotations.append((shapeType,coords,shapeId))
-                xCenter = (coords[0] + coords[2])/2
-                yCenter = (coords[1] + coords[3])/2
+                self.annotations.append((shapeType, coords, shapeId))
+                self.playerShapes.append([(originalCoords[0], originalCoords[1]), 
+                                    (originalCoords[2], originalCoords[3])])
+                xCenter = (originalCoords[0] + originalCoords[2])/2
+                yCenter = (originalCoords[1] + originalCoords[3])/2
                 self.userAnswers.append((xCenter, yCenter))
 
     def undo(self):
@@ -292,6 +301,15 @@ class GUI:
             [(300, 250), (340, 290)],
         ]
 
+        def confirmBtnAction():
+            print(self.playerShapes)
+            score, mis = self.game.compareRanges(self.playerShapes, self.image1)
+            state = False
+            if len(mis) == 0:
+                state = True
+            self.resultPage(state, score, len(mis)+score)
+
+
         self.root.geometry("1300x700")
 
         self.confirmBtn = tk.Button(
@@ -300,19 +318,20 @@ class GUI:
             width=14,
             height=1,
             font=("MV Boli", 17),
-            command=self.HomePage
+            command=confirmBtnAction
         )
         self.confirmBtn.place(x=550, y=600)
-
-        self.testBtn = tk.Button(
-            self.root,
-            text="test result page",
-            width=15,
-            height=1,
-            font=("MV Boli", 10),
-            command=self.checkResult
-        )
-        self.testBtn.place(x=50, y=420)
+        # test:
+         
+        # self.testBtn = tk.Button(
+        #     self.root,
+        #     text="test result page",
+        #     width=15,
+        #     height=1,
+        #     font=("MV Boli", 10),
+        #     command=self.checkResult
+        # )
+        # self.testBtn.place(x=50, y=420)
 
         self.selectedShape = tk.StringVar(value="rectangle")
         shapeLabel = tk.Label(self.root, text="Select shape:", font=("MV Boli", 12))
@@ -346,6 +365,9 @@ class GUI:
 
             self.tkImg1 = ImageTk.PhotoImage(img1)
             self.tkImg2 = ImageTk.PhotoImage(img2)
+
+            self.originalSize = Image.open(self.image2).size  
+            self.displayedSize = (400, 400) 
 
             self.canvas1 = tk.Canvas(self.root, width=400, height=400)
             self.canvas1.place(x=250, y=100)
