@@ -5,9 +5,6 @@ import cv2
 import os
 import numpy as np
 from PIL import Image, ImageTk
-
-
-
 from Game import Game
 
 class GUI:
@@ -23,7 +20,7 @@ class GUI:
         self.root.geometry("1300x700")
         self.game = Game()
         self.currentTheme = "vapor"
-        
+
         self.style = tb.Style()
         self.style.configure('TNotebook.Tab', font=('Helvetica', '12'), padding=[20, 10])
         self.pathTemp = tk.StringVar()
@@ -222,39 +219,130 @@ class GUI:
             displayLabel.config(image=photo)
             displayLabel.image = photo
                 
-    def resultPage(self, state = False, correctTimes =0, allTimes =0):
+    def resultPage(self, state=False, correctTimes=0, allTimes=0, missingRanges=None, image1=None, image2=None):
         if hasattr(self, 'notebook'):
             self.notebook.destroy()
+
 
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        if state:
-            msg = "Great!, You did it!! :)"
-            space = 250
-        else:
-            msg = "Game Over!!"
-            space = 410
 
-        self.gameoverLabel =tk.Label(root, text=msg, font=("MV Boli", 45))
-        self.gameoverLabel.place(x=space, y=100)
+        msg = "Great!, You did it!! :)" if state else "Game Over!!"
+        self.gameoverLabel = tk.Label(self.root, text=msg, font=("MV Boli", 30))
+        self.gameoverLabel.place(relx=0.5, y=10, anchor="n")
 
         self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {allTimes}", font=("MV Boli", 23))
         self.scoreLabel.place(x=470, y=300)
 
 
-        self.backBtn=tk.Button(
-            root, 
-            text="Back", 
+
+        self.backBtn = tk.Button(
+            self.root,
+            text="Back",
             width=14,
             height=1,
             font=("MV Boli", 17),
-            command= self.HomePage
+            command=self.HomePage
         )
+        self.backBtn.place(relx=0.1, rely=0.9, anchor="n")
 
-        self.backBtn.place(x=520, y = 420)
+
+        if image1 and image2:
+
+            img1 = Image.open(image1).resize((400, 400), Image.Resampling.LANCZOS)
+            img2 = Image.open(image2).resize((400, 400), Image.Resampling.LANCZOS)
+
+
+            self.tkImg1 = ImageTk.PhotoImage(img1)
+            self.tkImg2 = ImageTk.PhotoImage(img2)
+
+
+            origW, origH = Image.open(image2).size
+            dispW, dispH = (400, 400)
+
+
+            scaleX = dispW / origW
+            scaleY = dispH / origH
+
+            originRanges = self.game.getRanges(image2)
+
+
+            self.canvas1 = tk.Canvas(self.root, width=dispW, height=dispH)
+            self.canvas1.place(x=250, y=150)
+            self.canvas1.create_image(0, 0, anchor="nw", image=self.tkImg1)
+
+            self.canvas2 = tk.Canvas(self.root, width=dispW, height=dispH)
+            self.canvas2.place(x=700, y=150)
+            self.canvas2.create_image(0, 0, anchor="nw", image=self.tkImg2)
+
+
+            correctOrigins = []
+            if missingRanges:
+                for origin in originRanges:
+                    if origin not in missingRanges:
+                        correctOrigins.append(origin)
+            else:
+                correctOrigins=originRanges
+
+
+            if missingRanges:
+                for origin in missingRanges:
+
+                    (x1Orig, y1Orig), (x2Orig, y2Orig) = origin
+
+
+                    x1Scaled = int(x1Orig * scaleX)
+                    y1Scaled = int(y1Orig * scaleY)
+                    x2Scaled = int(x2Orig * scaleX)
+                    y2Scaled = int(y2Orig * scaleY)
+
+
+                    self.canvas2.create_rectangle(
+                        x1Scaled, y1Scaled,
+                        x2Scaled, y2Scaled,
+                        outline="red", width=3
+                    )
+
+
+            for origin in correctOrigins:
+                (x1o, y1o), (x2o, y2o) = origin
+                x1g = int(x1o * scaleX)
+                y1g = int(y1o * scaleY)
+                x2g = int(x2o * scaleX)
+                y2g = int(y2o * scaleY)
+
+
+                self.canvas2.create_rectangle(
+                    x1g, y1g, x2g, y2g,
+                    outline="#39FF14"
+                    , width=3
+                )
+
+
+        else:
+            tk.messagebox.showerror("Error", "Please select two images first.")
+
+    def confirmBtnAction(self):
+            print(self.playerShapes)
+            score, mis = self.game.compareRanges(self.playerShapes, self.image1)
+            state = False
+            if len(mis) == 0:
+                state = True
+            self.resultPage(state, score, len(mis)+score,mis,self.image1,self.image2)
 
     def canvas2Click(self, event):
+        if self.clicks>=7:
+            return
+        self.clicks+=1
+        self.labelClicks.config(text=f"{self.clicks}")
+
+        if self.clicks==7:
+            self.confirmBtnAction()
+        elif self.clicks==6:
+                winsound.Beep(1000, 500)
+
+
         scaleX = self.originalSize[0] / self.displayedSize[0]
         scaleY = self.originalSize[1] / self.displayedSize[1]
         
@@ -286,44 +374,50 @@ class GUI:
             self.userAnswers.append((originalX, originalY))
             self.tempMovements.clear()
 
+
+        if len(self.playerShapes) == self.game.getRangeLength(self.image1):
+            _, mis = self.game.compareRanges(self.playerShapes, self.image1)
+            if len(mis) == 0:
+                self.confirmBtnAction()
+
+
     def redo(self):
         if self.tempMovements:
             shapeType, coords, _ = self.tempMovements.pop()
             shapeId = None
-            
             scaleX = self.originalSize[0] / self.displayedSize[0]
             scaleY = self.originalSize[1] / self.displayedSize[1]
-            
+
             originalCoords = (
                 coords[0] * scaleX,
                 coords[1] * scaleY,
                 coords[2] * scaleX,
                 coords[3] * scaleY
             )
-            
+
             if shapeType == "circle":
-                shapeId = self.canvas2.create_oval(
-                    coords, outline="red", width=2
-                )
+                shapeId = self.canvas2.create_oval(coords, outline="red", width=2)
             elif shapeType == "rectangle":
-                shapeId = self.canvas2.create_rectangle(
-                    coords, outline="blue", width=2
-                )
-                
+                shapeId = self.canvas2.create_rectangle(coords, outline="blue", width=2)
+
             if shapeId:
                 self.annotations.append((shapeType, coords, shapeId))
-                self.playerShapes.append([(originalCoords[0], originalCoords[1]), 
-                                    (originalCoords[2], originalCoords[3])])
-                xCenter = (originalCoords[0] + originalCoords[2])/2
-                yCenter = (originalCoords[1] + originalCoords[3])/2
+                self.playerShapes.append([(originalCoords[0], originalCoords[1]),
+                                          (originalCoords[2], originalCoords[3])])
+                xCenter = (originalCoords[0] + originalCoords[2]) / 2
+                yCenter = (originalCoords[1] + originalCoords[3]) / 2
                 self.userAnswers.append((xCenter, yCenter))
+
+            self.clicks += 1
+            self.labelClicks.config(text=f"{self.clicks}")
 
     def undo(self):
         if self.annotations:
             shape = self.annotations.pop()
-            shapeStyle,coords,shapeId = shape
+            shapeStyle, coords, shapeId = shape
             self.canvas2.delete(shapeId)
             self.tempMovements.append(shape)
+
             if self.userAnswers:
                 self.userAnswers.pop()
                 self.playerShapes.pop()
@@ -335,32 +429,54 @@ class GUI:
         self.style.theme_use(themeName)
         self.currentThemeLabel.config(text=f"Theme: {themeName.capitalize()}")
 
+        if self.clicks > 0:
+            self.clicks -= 1
+            self.labelClicks.config(text=f"{self.clicks}")
+
     def gamePage(self):
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        def confirmBtnAction():
-            print(self.playerShapes)
-            score, mis = self.game.compareRanges(self.playerShapes, self.image1)
-            state = False
-            if len(mis) == 0:
-                state = True
-            self.resultPage(state, score, len(mis)+score)
+        self.clicks = 0
+        self.annotations = []
+        self.playerShapes = []
+        self.userAnswers = []
+        self.tempMovements = []
+
+        self.correctAnswers = [
+            [(100, 100), (150, 150)],
+            [(300, 250), (340, 290)],
+        ]
+
+        def countdown(seconds):
+            mins = seconds // 60
+            secs = seconds % 60
+            if seconds == 10 and mins == 0:
+                winsound.Beep(1000, 500)
+
+            timeText = f"{mins}:{secs:02}"
+            if seconds <= 10 and mins == 0 and seconds != 0:
+                labelTimer.config(text=timeText, fg="red")
+            elif seconds == 0:
+                labelTimer.config(text="Time is up!", fg="red")
+                self.confirmBtnAction()
+            else:
+                labelTimer.config(text=timeText)
+
+            self.root.after(1000, countdown, seconds - 1)
 
 
         self.root.geometry("1300x700")
 
-        self.confirmBtn = tk.Button(
-            self.root,
-            text="Confirm",
-            width=14,
-            height=1,
-            font=("MV Boli", 17),
-            command=confirmBtnAction
-        )
+        self.labelClicks = tk.Label(self.root, text=f"{self.clicks}", font=("MV Boli", 16), fg="black")
+        self.labelClicks.place(relx=0.8, rely=0.01, anchor="n")
+
+        self.confirmBtn = tk.Button(self.root, text="Confirm", width=14, height=1, font=("MV Boli", 17),
+                                    command=self.confirmBtnAction)
         self.confirmBtn.place(x=550, y=600)
 
         self.selectedShape = tk.StringVar(value="rectangle")
+
         shapeLabel = tk.Label(self.root, text="Select shape:", font=("MV Boli", 12))
         shapeLabel.place(x=850, y=550)
 
@@ -368,33 +484,22 @@ class GUI:
         shapeMenu.config(font=("MV Boli", 12), width=10)
         shapeMenu.place(x=1000, y=550)
 
-        self.undoBtn = tk.Button(
-            self.root,
-            text="Undo",
-            width=14,
-            height=1,
-            font=("MV Boli", 10),
-            command=self.undo
-        )
+        self.undoBtn = tk.Button(self.root, text="Undo", width=14, height=1, font=("MV Boli", 10),
+                                 command=self.undo)
         self.undoBtn.place(x=50, y=600)
-        self.redoBtn = tk.Button(
-            self.root,
-            text="Redo",
-            width=14,
-            height=1,
-            font=("MV Boli", 10),
-            command=self.redo
-        )
+
+        self.redoBtn = tk.Button(self.root, text="Redo", width=14, height=1, font=("MV Boli", 10),
+                                 command=self.redo)
         self.redoBtn.place(x=50, y=650)
+
         if self.image1 and self.image2:
             img1 = Image.open(self.image1).resize((400, 400), Image.Resampling.LANCZOS)
             img2 = Image.open(self.image2).resize((400, 400), Image.Resampling.LANCZOS)
-
             self.tkImg1 = ImageTk.PhotoImage(img1)
             self.tkImg2 = ImageTk.PhotoImage(img2)
 
-            self.originalSize = Image.open(self.image2).size  
-            self.displayedSize = (400, 400) 
+            self.originalSize = Image.open(self.image2).size
+            self.displayedSize = (400, 400)
 
             self.canvas1 = tk.Canvas(self.root, width=400, height=400)
             self.canvas1.place(x=250, y=100)
@@ -404,11 +509,12 @@ class GUI:
             self.canvas2.place(x=700, y=100)
             self.canvas2.create_image(0, 0, anchor="nw", image=self.tkImg2)
 
-
             self.canvas2.bind("<Button-1>", self.canvas2Click)
         else:
             tk.messagebox.showerror("Error", "Please select two images first.")
 
+        labelTimer = tk.Label(self.root, text="5:00", bg="black", font=("MV Boli", 20), fg="green")
+        labelTimer.place(relx=0.5, rely=0.01, anchor="n")
 
 if __name__ == "__main__":
     root = tb.Window(themename="vapor")
