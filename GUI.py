@@ -5,6 +5,9 @@ import cv2
 import os
 import numpy as np
 from PIL import Image, ImageTk
+
+
+
 from Game import Game
 
 class GUI:
@@ -19,6 +22,7 @@ class GUI:
         self.root.title("Find the Differences Game")
         self.root.geometry("1300x700")
         self.game = Game()
+        self.currentTheme = "vapor"
         
         self.style = tb.Style()
         self.style.configure('TNotebook.Tab', font=('Helvetica', '12'), padding=[20, 10])
@@ -45,7 +49,8 @@ class GUI:
         self.notebook.add(self.tab2, text="Settings")
         
         self.imageTab()
-    
+        self.SettingTab()
+
     def imageTab(self):
 
         self.icon1 = tk.PhotoImage(file="icons/gear1.gif")
@@ -82,6 +87,38 @@ class GUI:
         
         self.label1 =tk.Label(self.tab1, text="Image Selection Page", font=("Helvetica", 18))
         self.label1.pack(pady=10)
+
+    def SettingTab(self):
+
+        # volumeSlider = tk.Scale(
+        #     self.tab2,
+        #     from_=0,
+        #     to=100,
+        #     orient=tk.HORIZONTAL,
+        #     length=300,
+        #
+        # )
+        # volumeSlider.place(x=500, y=200)
+
+        themes = ["","cyborg", "darkly" , "vapor", "solar", "superhero",
+                      "morph", "journal", "cosmo", "flatly", "litera"]
+
+        self.Theme = tk.StringVar(value=self.currentTheme)
+
+        themeMenu = tb.OptionMenu(
+            self.tab2,
+            self.Theme,
+            *themes,
+            command=self.changeTheme
+        )
+        themeMenu.place(x=180, y=250)
+
+        self.currentThemeLabel = tb.Label(
+            self.tab2,
+            text=f"Theme: {self.currentTheme.capitalize()}",
+            font=('MV Boli', 20)
+        )
+        self.currentThemeLabel.place(x=120, y=170)
 
     def HomePage(self):
 
@@ -192,8 +229,6 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        msg = ""
-        space = None
         if state:
             msg = "Great!, You did it!! :)"
             space = 250
@@ -291,15 +326,18 @@ class GUI:
             self.tempMovements.append(shape)
             if self.userAnswers:
                 self.userAnswers.pop()
+                self.playerShapes.pop()
+
+    def changeTheme(self, themeName):
+
+        # if theme_name != self.currentTheme:
+        self.currentTheme = themeName
+        self.style.theme_use(themeName)
+        self.currentThemeLabel.config(text=f"Theme: {themeName.capitalize()}")
 
     def gamePage(self):
         for widget in self.root.winfo_children():
             widget.destroy()
-
-        self.correctAnswers = [ #########just for testing :\ #########
-            [(100, 100), (150, 150)],
-            [(300, 250), (340, 290)],
-        ]
 
         def confirmBtnAction():
             print(self.playerShapes)
@@ -321,17 +359,6 @@ class GUI:
             command=confirmBtnAction
         )
         self.confirmBtn.place(x=550, y=600)
-        # test:
-         
-        # self.testBtn = tk.Button(
-        #     self.root,
-        #     text="test result page",
-        #     width=15,
-        #     height=1,
-        #     font=("MV Boli", 10),
-        #     command=self.checkResult
-        # )
-        # self.testBtn.place(x=50, y=420)
 
         self.selectedShape = tk.StringVar(value="rectangle")
         shapeLabel = tk.Label(self.root, text="Select shape:", font=("MV Boli", 12))
@@ -383,7 +410,7 @@ class GUI:
             tk.messagebox.showerror("Error", "Please select two images first.")
 
 
-# solar, vapor (▀̿Ĺ̯▀̿ ̿)
-root = tb.Window(themename="vapor")
-app = GUI(root)
-root.mainloop()
+if __name__ == "__main__":
+    root = tb.Window(themename="vapor")
+    app = GUI(root)
+    root.mainloop()
