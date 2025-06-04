@@ -21,6 +21,7 @@ class GUI:
         self.root.geometry("1300x700")
         self.game = Game()
         self.clicks=0
+        # self.countdownChange = None
         self.labelClicks = tk.Label(root, text=f"{self.clicks}", bg="black", font=("MV Boli", 20), fg="green")
 
         self.style = tb.Style()
@@ -188,11 +189,11 @@ class GUI:
             displayLabel.config(image=photo)
             displayLabel.image = photo
                 
-    def resultPage(self, state=False, correctTimes=0, allTimes=0, missing_ranges=None, image1=None, image2=None):
+    def resultPage(self, state=False, correctTimes=0, allTimes=0, missingRanges=None, image1=None, image2=None):
         if hasattr(self, 'notebook'):
             self.notebook.destroy()
 
-        
+
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -245,41 +246,45 @@ class GUI:
             self.canvas2.place(x=700, y=150)
             self.canvas2.create_image(0, 0, anchor="nw", image=self.tkImg2)
 
-            correct_origins = []
-            if missing_ranges:
+
+            correctOrigins = []
+            if missingRanges:
                 for origin in originRanges:
-                    if origin not in missing_ranges:
-                        correct_origins.append(origin)
+                    if origin not in missingRanges:
+                        correctOrigins.append(origin)
             else:
-                correct_origins=originRanges
+                correctOrigins=originRanges
             
-            if missing_ranges:
-                for origin in missing_ranges:
+
+            if missingRanges:
+                for origin in missingRanges:
                     
-                    (x1_orig, y1_orig), (x2_orig, y2_orig) = origin
+                    (x1Orig, y1Orig), (x2Orig, y2Orig) = origin
 
                     
-                    x1_scaled = int(x1_orig * scaleX)
-                    y1_scaled = int(y1_orig * scaleY)
-                    x2_scaled = int(x2_orig * scaleX)
-                    y2_scaled = int(y2_orig * scaleY)
+                    x1Scaled = int(x1Orig * scaleX)
+                    y1Scaled = int(y1Orig * scaleY)
+                    x2Scaled = int(x2Orig * scaleX)
+                    y2Scaled = int(y2Orig * scaleY)
 
                    
                     self.canvas2.create_rectangle(
-                        x1_scaled, y1_scaled,
-                        x2_scaled, y2_scaled,
+                        x1Scaled, y1Scaled,
+                        x2Scaled, y2Scaled,
                         outline="red", width=3
                     )
-            for origin in correct_origins:
-                (x1_o, y1_o), (x2_o, y2_o) = origin
-                x1_g = int(x1_o * scaleX)
-                y1_g = int(y1_o * scaleY)
-                x2_g = int(x2_o * scaleX)
-                y2_g = int(y2_o * scaleY)
+
+
+            for origin in correctOrigins:
+                (x1o, y1o), (x2o, y2o) = origin
+                x1g = int(x1o * scaleX)
+                y1g = int(y1o * scaleY)
+                x2g = int(x2o * scaleX)
+                y2g = int(y2o * scaleY)
 
                 
                 self.canvas2.create_rectangle(
-                    x1_g, y1_g, x2_g, y2_g,
+                    x1g, y1g, x2g, y2g,
                     outline="#39FF14"
                     , width=3
                 )
@@ -287,7 +292,7 @@ class GUI:
 
         else:
             tk.messagebox.showerror("Error", "Please select two images first.")
-                
+
     def confirmBtnAction(self):
             print(self.playerShapes)
             score, mis = self.game.compareRanges(self.playerShapes, self.image1)
@@ -339,8 +344,11 @@ class GUI:
             self.userAnswers.append((originalX, originalY))
             self.tempMovements.clear()
 
-        
 
+        if len(self.playerShapes) == self.game.getRangeLength(self.image1):
+            _, mis = self.game.compareRanges(self.playerShapes, self.image1)
+            if len(mis) == 0:
+                self.confirmBtnAction()
 
 
     def redo(self):
@@ -418,6 +426,7 @@ class GUI:
                 labelTimer.config(text=timeText)
 
             self.root.after(1000, countdown, seconds - 1)
+
 
         self.root.geometry("1300x700")
 
