@@ -409,7 +409,7 @@ class GUI:
                 self.userAnswers.append((xCenter, yCenter))
             if (self.clicks > 0):
                 self.clicks -= 1
-            self.labelClicks.config(text=f"{self.clicks}")
+            self.labelClicks.config(text=f"Shots: {self.clicks}")
 
     def undo(self):
         if self.annotations:
@@ -418,7 +418,7 @@ class GUI:
             self.canvas2.delete(shapeId)
             self.tempMovements.append(shape)
             self.clicks += 1
-            self.labelClicks.config(text=f"{self.clicks}")
+            self.labelClicks.config(text=f"Shots: {self.clicks}")
             if self.userAnswers:
                 self.userAnswers.pop()
                 self.playerShapes.pop()
@@ -438,7 +438,7 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        self.clicks = 6
+        self.clicks = 7
         self.annotations = []
         self.playerShapes = []
         self.userAnswers = []
