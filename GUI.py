@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import *
 import ttkbootstrap as tb
 from tkinter import filedialog
 import cv2
@@ -28,9 +29,10 @@ class GUI:
         self.HomePage()
         self.userAnswers = []
         self.tempMovements = []
+        self.lastMode = ["ON","ON"]
 
     def createPage(self):
-
+        self.game.playSound(1)
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -50,7 +52,7 @@ class GUI:
         self.SettingTab()
 
     def imageTab(self):
-
+        self.game.playSound(1)
         self.icon1 = tk.PhotoImage(file="icons/gear1.gif")
         iconLabel = tk.Label(self.tab1, image=self.icon1)
         iconLabel.pack(pady=10)
@@ -87,7 +89,7 @@ class GUI:
         self.label1.pack(pady=10)
 
     def SettingTab(self):
-
+        self.game.playSound(1)
         # volumeSlider = tk.Scale(
         #     self.tab2,
         #     from_=0,
@@ -118,7 +120,63 @@ class GUI:
         )
         self.currentThemeLabel.place(x=120, y=170)
 
+
+        def effectAction():
+            self.game.playSound(7)
+            if self.lastMode[0] == "ON":
+                self.lastMode[0] = "OFF"
+                self.game.silent = True
+            else:
+                self.lastMode[0] = "ON"
+                self.game.silent = False
+            self.effectState.config(text=self.lastMode[0]) 
+
+
+
+        self.effectsLabel = tb.Label(self.tab2,
+            text="Action Effects:",
+            font=('MV Boli', 20)
+        )
+
+        self.effectsLabel.place(x=650, y=170)
+        self.effectState=tk.Button(
+            self.tab2, 
+            text=self.lastMode[0],
+            width=7,
+            height= 1,
+            font=("Helvetica", 10),
+            command=effectAction
+        )
+        self.effectState.place(x=960, y=180)
+
+
+        def backgroundAction():
+            self.game.playSound(7)
+            if self.lastMode[1] == "ON":
+                self.lastMode[1] = "OFF"
+                self.game.disableBackOst = True
+            else:
+                self.lastMode[1] = "ON"
+                self.game.disableBackOst = False
+            self.backgroundState.config(text=self.lastMode[1]) 
+
+
+        self.backgroundMusicLabel = tb.Label(self.tab2, text="Background Music:", font=('MV Boli', 20)
+        )
+        self.backgroundMusicLabel.place(x=650, y=240)
+        
+        self.backgroundState=tk.Button(
+            self.tab2, 
+            text=self.lastMode[1],
+            width=7,
+            height= 1,
+            font=("Helvetica", 10),
+            command=backgroundAction
+        )
+        self.backgroundState.place(x=960, y=250)
+
     def HomePage(self):
+        self.game.playBackgroundOst()
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -228,15 +286,21 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-
-        msg = "Great!, You did it!! :)" if state else "Game Over!!"
+        if state:
+            self.game.playSound(4)
+            msg = "Great!, You did it!! :)"
+        else:
+            self.game.playSound(3)
+            msg = "Game Over!!"
         self.gameoverLabel = tk.Label(self.root, text=msg, font=("MV Boli", 30))
         self.gameoverLabel.place(relx=0.5, y=10, anchor="n")
 
         self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {allTimes}", font=("MV Boli", 23))
         self.scoreLabel.place(x=470, y=600)
 
-
+        def backBtnAction():
+            self.game.playSound(1)
+            self.HomePage()
 
         self.backBtn = tk.Button(
             self.root,
@@ -244,7 +308,7 @@ class GUI:
             width=14,
             height=1,
             font=("MV Boli", 17),
-            command=self.HomePage
+            command=backBtnAction
         )
         self.backBtn.place(relx=0.1, rely=0.9, anchor="n")
 
@@ -325,6 +389,7 @@ class GUI:
             tk.messagebox.showerror("Error", "Please select two images first.")
 
     def confirmBtnAction(self):
+            self.game.playSound(1)
             print(self.playerShapes)
             score, mis = self.game.compareRanges(self.playerShapes, self.image1)
             state = False
@@ -333,6 +398,7 @@ class GUI:
             self.resultPage(state, score, len(mis)+score,mis,self.image1,self.image2)
 
     def canvas2Click(self, event):
+        self.game.playSound(7)
         if self.clicks==0:
             return
         self.clicks-=1
@@ -382,6 +448,7 @@ class GUI:
                 self.confirmBtnAction()
 
     def redo(self):
+        self.game.playSound(7)
         if self.tempMovements:
             shapeType, coords, _ = self.tempMovements.pop()
             shapeId = None
@@ -412,6 +479,7 @@ class GUI:
             self.labelClicks.config(text=f"{self.clicks}")
 
     def undo(self):
+        self.game.playSound(7)
         if self.annotations:
             shape = self.annotations.pop()
             shapeStyle, coords, shapeId = shape
@@ -424,7 +492,7 @@ class GUI:
                 self.playerShapes.pop()
 
     def changeTheme(self, themeName):
-
+        self.game.playSound(7)
         # if theme_name != self.currentTheme:
         self.currentTheme = themeName
         self.style.theme_use(themeName)
@@ -435,6 +503,9 @@ class GUI:
             self.labelClicks.config(text=f"{self.clicks}")
 
     def gamePage(self):
+        self.game.playSound(1)
+        self.game.playSound(2)
+
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -446,8 +517,10 @@ class GUI:
         def countdown(seconds):
             mins = seconds // 60
             secs = seconds % 60
-            if seconds <= 10 and mins == 0:
+            if 5 <= seconds <= 10 and mins == 0:
                 winsound.Beep(1000, 500)
+            if seconds == 4:
+                self.game.playSound(5)
             timeText = f"{mins}:{secs:02}"
             if seconds <= 10 and mins == 0 and seconds != 0:
                 labelTimer.config(text=timeText, fg="red")

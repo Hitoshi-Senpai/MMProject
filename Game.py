@@ -1,10 +1,16 @@
 import random
+import pygame
+
 
 class Game:
     def __init__(self):
         self.history = set()
         self.imgsRange = []
         self.storeRanges()
+        pygame.mixer.init()
+        self.effectPath = ""
+        self.silent = False
+        self.disableBackOst = False
 
     def storeRanges(self):
         self.imgsRange.append([[(235, 150), (285, 222)], [(100, 350), (130, 375)], [(30, 470),(85, 433)], [(474, 465), (510, 415)], [(470, 80), (550, 130)],[(100, 170),(150, 190)]])
@@ -54,5 +60,36 @@ class Game:
             if not inRange:
                 missing.append(origin)
         return (score, missing)
+    
+    def playBackgroundOst(self):
+        if self.disableBackOst:
+            return
+        pygame.mixer.music.load("SoundEffects/backgroundOst.mp3")
+        pygame.mixer.music.play(loops=0)
+    
+    def playSound(self, mode):
+        if self.silent:
+            return
+        if mode == 1:
+            self.effectPath = "SoundEffects/clickEffect.mp3"
+        elif mode == 2:
+            self.effectPath = "SoundEffects/imageShowEffect.mp3"
+        elif mode == 3:
+            self.effectPath = "SoundEffects/failedEffect.mp3"
+        elif mode == 4:
+            self.effectPath = "SoundEffects/congratEffect.mp3"
+        elif mode == 5:
+            self.effectPath = "SoundEffects/timerRunsOut.mp3"
+        elif mode == 6:
+            self.effectPath = "SoundEffects/timerRunsOut2.mp3"
+        elif mode == 7:
+            self.effectPath = "SoundEffects\clickEffect2.mp3"
+        
+        pygame.mixer.music.load(self.effectPath)
+        pygame.mixer.music.play(loops=0)
+
+    def stopSound(self):
+            pygame.mixer.music.stop()
+
                 
                 
