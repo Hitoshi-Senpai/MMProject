@@ -4,6 +4,7 @@ from tkinter import filedialog
 import cv2
 import os
 import numpy as np
+import winsound
 from PIL import Image, ImageTk
 from Game import Game
 
@@ -233,7 +234,7 @@ class GUI:
         self.gameoverLabel.place(relx=0.5, y=10, anchor="n")
 
         self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {allTimes}", font=("MV Boli", 23))
-        self.scoreLabel.place(x=470, y=300)
+        self.scoreLabel.place(x=470, y=600)
 
 
 
@@ -332,14 +333,14 @@ class GUI:
             self.resultPage(state, score, len(mis)+score,mis,self.image1,self.image2)
 
     def canvas2Click(self, event):
-        if self.clicks>=7:
+        if self.clicks==0:
             return
-        self.clicks+=1
-        self.labelClicks.config(text=f"{self.clicks}")
+        self.clicks-=1
+        self.labelClicks.config(text=f"Shots: {self.clicks}")
 
-        if self.clicks==7:
+        if self.clicks==0:
             self.confirmBtnAction()
-        elif self.clicks==6:
+        elif self.clicks<=0:
                 winsound.Beep(1000, 500)
 
 
@@ -380,7 +381,6 @@ class GUI:
             if len(mis) == 0:
                 self.confirmBtnAction()
 
-
     def redo(self):
         if self.tempMovements:
             shapeType, coords, _ = self.tempMovements.pop()
@@ -407,8 +407,8 @@ class GUI:
                 xCenter = (originalCoords[0] + originalCoords[2]) / 2
                 yCenter = (originalCoords[1] + originalCoords[3]) / 2
                 self.userAnswers.append((xCenter, yCenter))
-
-            self.clicks += 1
+            if (self.clicks > 0):
+                self.clicks -= 1
             self.labelClicks.config(text=f"{self.clicks}")
 
     def undo(self):
@@ -417,7 +417,8 @@ class GUI:
             shapeStyle, coords, shapeId = shape
             self.canvas2.delete(shapeId)
             self.tempMovements.append(shape)
-
+            self.clicks += 1
+            self.labelClicks.config(text=f"{self.clicks}")
             if self.userAnswers:
                 self.userAnswers.pop()
                 self.playerShapes.pop()
@@ -437,23 +438,16 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-        self.clicks = 0
+        self.clicks = 6
         self.annotations = []
         self.playerShapes = []
         self.userAnswers = []
         self.tempMovements = []
-
-        self.correctAnswers = [
-            [(100, 100), (150, 150)],
-            [(300, 250), (340, 290)],
-        ]
-
         def countdown(seconds):
             mins = seconds // 60
             secs = seconds % 60
-            if seconds == 10 and mins == 0:
+            if seconds <= 10 and mins == 0:
                 winsound.Beep(1000, 500)
-
             timeText = f"{mins}:{secs:02}"
             if seconds <= 10 and mins == 0 and seconds != 0:
                 labelTimer.config(text=timeText, fg="red")
@@ -468,8 +462,8 @@ class GUI:
 
         self.root.geometry("1300x700")
 
-        self.labelClicks = tk.Label(self.root, text=f"{self.clicks}", font=("MV Boli", 16), fg="black")
-        self.labelClicks.place(relx=0.8, rely=0.01, anchor="n")
+        self.labelClicks = tk.Label(self.root, text=f"Shots: {self.clicks}", font=("MV Boli", 20,"bold"), fg="black")
+        self.labelClicks.place(x=1150, y=40, anchor="n")
 
         self.confirmBtn = tk.Button(self.root, text="Confirm", width=14, height=1, font=("MV Boli", 17),
                                     command=self.confirmBtnAction)
@@ -486,11 +480,11 @@ class GUI:
 
         self.undoBtn = tk.Button(self.root, text="Undo", width=14, height=1, font=("MV Boli", 10),
                                  command=self.undo)
-        self.undoBtn.place(x=50, y=600)
+        self.undoBtn.place(x=50, y=500)
 
         self.redoBtn = tk.Button(self.root, text="Redo", width=14, height=1, font=("MV Boli", 10),
                                  command=self.redo)
-        self.redoBtn.place(x=50, y=650)
+        self.redoBtn.place(x=50, y=550)
 
         if self.image1 and self.image2:
             img1 = Image.open(self.image1).resize((400, 400), Image.Resampling.LANCZOS)
@@ -513,8 +507,9 @@ class GUI:
         else:
             tk.messagebox.showerror("Error", "Please select two images first.")
 
-        labelTimer = tk.Label(self.root, text="5:00", bg="black", font=("MV Boli", 20), fg="green")
+        labelTimer = tk.Label(self.root, text="5:00", bg="black", font=("MV Boli", 20), fg="green" )
         labelTimer.place(relx=0.5, rely=0.01, anchor="n")
+        countdown(30)
 
 if __name__ == "__main__":
     root = tb.Window(themename="vapor")
