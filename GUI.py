@@ -282,38 +282,26 @@ class GUI:
         if hasattr(self, 'notebook'):
             self.notebook.destroy()
 
+
         for widget in self.root.winfo_children():
             widget.destroy()
 
-<<<<<<< HEAD
         if state:
             self.game.playSound(4)
             msg = "Great!, You did it!! :)"
         else:
             self.game.playSound(3)
             msg = "Game Over!!"
-=======
-        msg = "Great!, You did it!! :)" if state else "Game Over!!"
->>>>>>> 3ef9e78e31a4ec13a557280cd347f37b1e082232
         self.gameoverLabel = tk.Label(self.root, text=msg, font=("MV Boli", 30))
         self.gameoverLabel.place(relx=0.5, y=10, anchor="n")
-
-        self.shotsRemaining = tk.Label(self.root, text=f"Shots Remained  : {self.clicks}", font=("MV Boli", 15))
-        self.shotsRemaining.place(x=1000, y=600)
-
-        self.shotsUsed = tk.Label(self.root, text=f"Shots Used      : {self.shots - self.clicks}", font=("MV Boli", 15))
-        self.shotsUsed.place(x=1000, y=650)
 
         self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {allTimes}", font=("MV Boli", 23))
         self.scoreLabel.place(x=470, y=600)
 
-<<<<<<< HEAD
         def backBtnAction():
             self.game.playSound(1)
             self.HomePage()
 
-=======
->>>>>>> 3ef9e78e31a4ec13a557280cd347f37b1e082232
         self.backBtn = tk.Button(
             self.root,
             text="Back",
@@ -324,21 +312,26 @@ class GUI:
         )
         self.backBtn.place(relx=0.1, rely=0.9, anchor="n")
 
+
         if image1 and image2:
 
             img1 = Image.open(image1).resize((400, 400), Image.Resampling.LANCZOS)
             img2 = Image.open(image2).resize((400, 400), Image.Resampling.LANCZOS)
 
+
             self.tkImg1 = ImageTk.PhotoImage(img1)
             self.tkImg2 = ImageTk.PhotoImage(img2)
 
+
             origW, origH = Image.open(image2).size
             dispW, dispH = (400, 400)
+
 
             scaleX = dispW / origW
             scaleY = dispH / origH
 
             originRanges = self.game.getRanges(image2)
+
 
             self.canvas1 = tk.Canvas(self.root, width=dispW, height=dispH)
             self.canvas1.place(x=250, y=150)
@@ -348,6 +341,7 @@ class GUI:
             self.canvas2.place(x=700, y=150)
             self.canvas2.create_image(0, 0, anchor="nw", image=self.tkImg2)
 
+
             correctOrigins = []
             if missingRanges:
                 for origin in originRanges:
@@ -356,21 +350,25 @@ class GUI:
             else:
                 correctOrigins=originRanges
 
+
             if missingRanges:
                 for origin in missingRanges:
 
                     (x1Orig, y1Orig), (x2Orig, y2Orig) = origin
+
 
                     x1Scaled = int(x1Orig * scaleX)
                     y1Scaled = int(y1Orig * scaleY)
                     x2Scaled = int(x2Orig * scaleX)
                     y2Scaled = int(y2Orig * scaleY)
 
+
                     self.canvas2.create_rectangle(
                         x1Scaled, y1Scaled,
                         x2Scaled, y2Scaled,
                         outline="red", width=3
                     )
+
 
             for origin in correctOrigins:
                 (x1o, y1o), (x2o, y2o) = origin
@@ -379,11 +377,13 @@ class GUI:
                 x2g = int(x2o * scaleX)
                 y2g = int(y2o * scaleY)
 
+
                 self.canvas2.create_rectangle(
                     x1g, y1g, x2g, y2g,
                     outline="#39FF14"
                     , width=3
                 )
+
 
         else:
             tk.messagebox.showerror("Error", "Please select two images first.")
@@ -408,6 +408,7 @@ class GUI:
             self.confirmBtnAction()
         elif self.clicks<=0:
                 winsound.Beep(1000, 500)
+
 
         scaleX = self.originalSize[0] / self.displayedSize[0]
         scaleY = self.originalSize[1] / self.displayedSize[1]
@@ -439,6 +440,7 @@ class GUI:
             self.playerShapes.append([(coords[0], coords[1]), (coords[2], coords[3])])
             self.userAnswers.append((originalX, originalY))
             self.tempMovements.clear()
+
 
         if len(self.playerShapes) == self.game.getRangeLength(self.image1):
             _, mis = self.game.compareRanges(self.playerShapes, self.image1)
@@ -474,7 +476,7 @@ class GUI:
                 self.userAnswers.append((xCenter, yCenter))
             if (self.clicks > 0):
                 self.clicks -= 1
-            self.labelClicks.config(text=f"Shots: {self.clicks}")
+            self.labelClicks.config(text=f"{self.clicks}")
 
     def undo(self):
         self.game.playSound(7)
@@ -484,7 +486,7 @@ class GUI:
             self.canvas2.delete(shapeId)
             self.tempMovements.append(shape)
             self.clicks += 1
-            self.labelClicks.config(text=f"Shots: {self.clicks}")
+            self.labelClicks.config(text=f"{self.clicks}")
             if self.userAnswers:
                 self.userAnswers.pop()
                 self.playerShapes.pop()
@@ -506,8 +508,8 @@ class GUI:
 
         for widget in self.root.winfo_children():
             widget.destroy()
-        self.shots = 7
-        self.clicks = self.shots
+
+        self.clicks = 6
         self.annotations = []
         self.playerShapes = []
         self.userAnswers = []
@@ -536,7 +538,8 @@ class GUI:
         self.labelClicks = tk.Label(self.root, text=f"Shots: {self.clicks}", font=("MV Boli", 20,"bold"), fg="black")
         self.labelClicks.place(x=1150, y=40, anchor="n")
 
-        self.confirmBtn = tk.Button(self.root, text="Confirm", width=14, height=1, font=("MV Boli", 17),command=self.confirmBtnAction)
+        self.confirmBtn = tk.Button(self.root, text="Confirm", width=14, height=1, font=("MV Boli", 17),
+                                    command=self.confirmBtnAction)
         self.confirmBtn.place(x=550, y=600)
 
         self.selectedShape = tk.StringVar(value="rectangle")
