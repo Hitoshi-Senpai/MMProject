@@ -535,7 +535,7 @@ class GUI:
 
         self.root.geometry("1300x700")
 
-        self.labelClicks = tk.Label(self.root, text="Shots: {self.clicks}", font=("MV Boli", 20,"bold"), fg="black")
+        self.labelClicks = tk.Label(self.root, text=f"Shots: {self.clicks}", font=("MV Boli", 20,"bold"), fg="black")
         self.labelClicks.place(x=1150, y=40, anchor="n")
 
         self.confirmBtn = tk.Button(self.root, text="Confirm", width=14, height=1, font=("MV Boli", 17),
