@@ -285,16 +285,13 @@ class GUI:
         for widget in self.root.winfo_children():
             widget.destroy()
 
-<<<<<<< HEAD
         if state:
             self.game.playSound(4)
             msg = "Great!, You did it!! :)"
         else:
             self.game.playSound(3)
             msg = "Game Over!!"
-=======
         msg = "Great!, You did it!! :)" if state else "Game Over!!"
->>>>>>> 3ef9e78e31a4ec13a557280cd347f37b1e082232
         self.gameoverLabel = tk.Label(self.root, text=msg, font=("MV Boli", 30))
         self.gameoverLabel.place(relx=0.5, y=10, anchor="n")
 
@@ -307,13 +304,11 @@ class GUI:
         self.scoreLabel =tk.Label(root, text=f"Your Score: {correctTimes} / {allTimes}", font=("MV Boli", 23))
         self.scoreLabel.place(x=470, y=600)
 
-<<<<<<< HEAD
         def backBtnAction():
             self.game.playSound(1)
             self.HomePage()
 
-=======
->>>>>>> 3ef9e78e31a4ec13a557280cd347f37b1e082232
+
         self.backBtn = tk.Button(
             self.root,
             text="Back",
