@@ -20,13 +20,14 @@ class Game:
         self.imgsRange.append([[(235, 150), (285, 222)], [(100, 350), (130, 375)], [(30, 470),(85, 433)], [(474, 465), (510, 415)], [(470, 80), (550, 130)],[(100, 170),(150, 190)]])
         self.imgsRange.append([[(20, 350), (50, 381)]])
         self.imgsRange.append([[(155, 80), (180, 90)], [(230, 134), (255, 155)], [(10, 100), (60, 150)], [(350, 125), (385, 160)], [(264, 106), (292, 120)]])
+        self.imgsRange.append([[(140, 112),(190, 147)],[(110, 355),(124, 370)],[(142, 217),(156, 238)], [(297, 370),(341, 390)], [(63, 236),(97, 290)], [(100, 258),(131, 272)], [(190, 253),(220, 278)]])
 
 
     def getImagePairs(self):
-        if len(self.history) == 3:
+        if len(self.history) == 4:
             self.history.clear()
         while True:
-            index = random.randint(1, 3)
+            index = random.randint(1, 4)
             if index not in self.history:
                 self.history.add(index)
                 return (f"Images/img{index}-1.png", f"Images/img{index}-2.png")
